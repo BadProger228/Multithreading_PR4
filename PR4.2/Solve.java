@@ -7,36 +7,22 @@ import java.util.concurrent.TimeUnit;
 public class Solve {
     public Solve() {
         long startTime = System.nanoTime();
-        double course = 0.024;
-        List<Integer> grn = new ArrayList<>();
-        List<Double> finalTransfer = new ArrayList<>();
+        List<Integer> arr = new ArrayList<>();
 
-        CompletableFuture<Void> start = CompletableFuture.runAsync(() -> generateGrnArray(grn));
-        printElapsedTime("Generate grn array", startTime);
+        CompletableFuture<Void> start = CompletableFuture.runAsync(() -> generateArray(arr));
+        CompletableFuture<Void> show = start.thenAcceptAsync(unused -> printElapsedTime("Generated array", startTime));
 
-        CompletableFuture<List<Double>> convertToDollars = start.thenApplyAsync(unused -> {
-            System.out.println("Convert to dollars");
-            List<Double> dollarsAsync = new ArrayList<>();
-            for (var val : grn) {
-                double dol = val * course;
-                dollarsAsync.add(dol);
-                System.out.println(dol);
-            }
-            printElapsedTime("Convert to dollars", startTime);
-            return dollarsAsync;
+        CompletableFuture<Void> findResult = show.thenAcceptAsync(unused -> {
+            System.out.println("Finding result: ");
+            int result = 1;
+            for (int i = 0; i < arr.size() - 1; i++) 
+                result *= arr.get(i + 1) - arr.get(i);                
+            
+            System.out.println("Result is " + result);
+            printElapsedTime("Time to find a result", startTime);
         });
 
-        CompletableFuture<Void> commission = convertToDollars.thenAcceptAsync(dollars -> {
-            System.out.println("Final dollars after commission: ");
-            for (var val : dollars) {
-                double finalValue = val - val * 0.05;
-                finalTransfer.add(finalValue);
-                System.out.println(finalValue);
-            }
-            printElapsedTime("Final dollars after commission", startTime);
-        });
-
-        commission.join();
+        findResult.join();
     }
 
     private void printElapsedTime(String message, long startTime) {
@@ -44,17 +30,13 @@ public class Solve {
         System.out.printf("%s - Time elapsed: %d ms\n", message, TimeUnit.NANOSECONDS.toMillis(elapsedTime));
     }
 
-    private void generateGrnArray(List<Integer> arr) {
-        System.out.println("Generate grn array: ");
+    private void generateArray(List<Integer> arr) {
+        System.out.println("Generate array: ");
         Random r = new Random();
-        int size = r.nextInt(25) + 1;
-        for (int i = 0; i < size; i++) {
+        
+        for (int i = 0; i < 20; i++) {
             arr.add(r.nextInt(100) + 15 / 2);
         }
-
-        System.out.println("Array is: ");
-        for (var val : arr) {
-            System.out.println(val);
-        }
+        System.out.println("Array is: " + arr);
     }
 }
